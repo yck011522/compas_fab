@@ -46,14 +46,17 @@ def redirect_stdout(to=os.devnull, enabled=True):
     if not enabled:
         yield
     else:
-        fd = sys.stdout.fileno()
-        with os.fdopen(os.dup(fd), 'w') as old_stdout:
-            with open(to, 'w') as file:
-                _redirect_stdout(to_=file)
-            try:
-                yield
-            finally:
-                _redirect_stdout(to_=old_stdout)  # restore stdout. buffering and flags such as CLOEXEC may be different
+        try:
+            fd = sys.stdout.fileno()
+            with os.fdopen(os.dup(fd), 'w') as old_stdout:
+                with open(to, 'w') as file:
+                    _redirect_stdout(to_=file)
+                try:
+                    yield
+                finally:
+                    _redirect_stdout(to_=old_stdout)  # restore stdout. buffering and flags such as CLOEXEC may be different
+        except:
+            yield
 
 
 def get_logger(name):
