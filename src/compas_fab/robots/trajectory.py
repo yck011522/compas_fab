@@ -7,6 +7,7 @@ from compas.robots import Configuration
 from compas.robots.configuration import FixedLengthList
 from compas_fab.robots import AttachedCollisionMesh
 from compas_fab.robots.time_ import Duration
+from compas.data import Data
 
 __all__ = [
     'JointTrajectoryPoint',
@@ -231,7 +232,7 @@ class JointTrajectoryPoint(Configuration):
         return JointTrajectoryPoint(joint_values, joint_types, velocities, accelerations, effort, joint_names=joint_names)
 
 
-class Trajectory(object):
+class Trajectory(Data):
     """Base trajectory class.
 
     Attribute
@@ -241,6 +242,7 @@ class Trajectory(object):
     """
 
     def __init__(self):
+        super(Trajectory, self).__init__()
         self.planning_time = None
 
 
@@ -279,7 +281,7 @@ class JointTrajectory(Trajectory):
     """
 
     def __init__(self, trajectory_points=None, joint_names=None, start_configuration=None, fraction=None, attached_collision_meshes=None):
-        super(Trajectory, self).__init__()
+        super(JointTrajectory, self).__init__()
         self.points = trajectory_points or []
         self.joint_names = joint_names or []
         self.start_configuration = start_configuration
