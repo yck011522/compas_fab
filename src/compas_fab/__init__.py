@@ -21,6 +21,14 @@ implementations in the ``backends`` modules:
     compas_fab.robots
     compas_fab.backends
 
+Planning
+--------
+
+.. toctree::
+    :maxdepth: 1
+
+    compas_fab.planning
+
 CAD integration
 ---------------
 
