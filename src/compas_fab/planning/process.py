@@ -42,6 +42,7 @@ __all__ = [
 #         self.before_approach_frame = data.get('before_approach_frame', self.before_approach_frame)
 #         self.assembled_frame = data.get('assembled_frame', self.assembled_frame)
 
+
 class AssemblyProcess(Data):
     """Base class for an Assembly Process.
     Suppoorts only one tool in the process, hence no tool change is supported.
@@ -83,18 +84,18 @@ class AssemblyProcess(Data):
     @property
     def data(self):
         data = {}
-        data['workpieces'] = self.workpieces
-        data['tool'] = self.tool
-        data['assembly_sequence'] = self.assembly_sequence
-        data['actions'] = self.actions
+        data["workpieces"] = self.workpieces
+        data["tool"] = self.tool
+        data["assembly_sequence"] = self.assembly_sequence
+        data["actions"] = self.actions
         return data
 
     @data.setter
     def data(self, data):
-        self.workpieces = data.get('workpieces', self.workpieces)
-        self.tool = data.get('tool', self.tool)
-        self.assembly_sequence = data.get('assembly_sequence', self.assembly_sequence)
-        self.actions = data.get('actions', self.actions)
+        self.workpieces = data.get("workpieces", self.workpieces)
+        self.tool = data.get("tool", self.tool)
+        self.assembly_sequence = data.get("assembly_sequence", self.assembly_sequence)
+        self.actions = data.get("actions", self.actions)
 
     @property
     def workpiece_ids(self):
@@ -119,7 +120,8 @@ class AssemblyProcess(Data):
         # Set initial state of workpieces (the workpieces by default are stored in the world XY plane)
         for workpiece_id in self.workpiece_ids:
             scene_state.workpiece_states[workpiece_id].frame = self.workpiece_storage_frame.get(
-                workpiece_id, Frame.worldXY())
+                workpiece_id, Frame.worldXY()
+            )
 
         # Set initial state of tool (the tool by default is attached to robot flange directly)
         scene_state.tool_states[self.tool_id].frame = self.robot_initial_frame
@@ -142,7 +144,8 @@ class AssemblyProcess(Data):
             The index must be smaller than or equal to the number of actions in the process.
         """
         assert state_index <= len(
-            self.actions), "state_index must be smaller than or equal to the number of actions in the process."
+            self.actions
+        ), "state_index must be smaller than or equal to the number of actions in the process."
         scene_state = self.get_initial_state()
         for action in self.actions[:state_index]:
             action.apply_to(scene_state, debug=debug)

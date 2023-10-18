@@ -35,20 +35,20 @@ class SceneState(Data):
     @property
     def data(self):
         data = {}
-        data['workpiece_ids'] = self.workpiece_ids
-        data['tool_ids'] = self.tool_ids
-        data['workpiece_states'] = self.workpiece_states
-        data['tool_states'] = self.tool_states
-        data['robot_state'] = self.robot_state
+        data["workpiece_ids"] = self.workpiece_ids
+        data["tool_ids"] = self.tool_ids
+        data["workpiece_states"] = self.workpiece_states
+        data["tool_states"] = self.tool_states
+        data["robot_state"] = self.robot_state
         return data
 
     @data.setter
     def data(self, data):
-        self.workpiece_ids = data.get('workpiece_ids', self.workpiece_ids)
-        self.tool_ids = data.get('tool_ids', self.tool_ids)
-        self.workpiece_states = data.get('workpiece_states', self.workpiece_states)
-        self.tool_states = data.get('tool_states', self.tool_states)
-        self.robot_state = data.get('robot_state', self.robot_state)
+        self.workpiece_ids = data.get("workpiece_ids", self.workpiece_ids)
+        self.tool_ids = data.get("tool_ids", self.tool_ids)
+        self.workpiece_states = data.get("workpiece_states", self.workpiece_states)
+        self.tool_states = data.get("tool_states", self.tool_states)
+        self.robot_state = data.get("robot_state", self.robot_state)
 
     def get_robot_state(self):
         # type: () -> RobotState
@@ -66,7 +66,7 @@ class SceneState(Data):
         """
         if tool_id is None:
             if len(self.tool_ids) > 1:
-                raise ValueError('There is more than one tool in the scene. Please specify the tool id.')
+                raise ValueError("There is more than one tool in the scene. Please specify the tool id.")
             tool_id = self.tool_ids[0]
         return self.tool_states[tool_id]
 
@@ -120,7 +120,7 @@ class WorkpieceState(Data):
 
     """
 
-    def __init__(self, workpiece_id='undefined_workpiece'):
+    def __init__(self, workpiece_id="undefined_workpiece"):
         super(WorkpieceState, self).__init__()
         self.workpiece_id = workpiece_id
         self.frame = Frame.worldXY()  # type: Frame
@@ -130,18 +130,18 @@ class WorkpieceState(Data):
     @property
     def data(self):
         data = {}
-        data['workpiece_id'] = self.workpiece_id
-        data['frame'] = self.frame
-        data['attached_to_tool_id'] = self.attached_to_tool_id
-        data['attached_to_tool_grasp'] = self.attached_to_tool_grasp
+        data["workpiece_id"] = self.workpiece_id
+        data["frame"] = self.frame
+        data["attached_to_tool_id"] = self.attached_to_tool_id
+        data["attached_to_tool_grasp"] = self.attached_to_tool_grasp
         return data
 
     @data.setter
     def data(self, data):
-        self.workpiece_id = data.get('workpiece_id', self.workpiece_id)
-        self.frame = data.get('frame', self.frame)
-        self.attached_to_tool_id = data.get('attached_to_tool_id', self.attached_to_tool_id)
-        self.attached_to_tool_grasp = data.get('attached_to_tool_grasp', self.attached_to_tool_grasp)
+        self.workpiece_id = data.get("workpiece_id", self.workpiece_id)
+        self.frame = data.get("frame", self.frame)
+        self.attached_to_tool_id = data.get("attached_to_tool_id", self.attached_to_tool_id)
+        self.attached_to_tool_grasp = data.get("attached_to_tool_grasp", self.attached_to_tool_grasp)
 
 
 class ToolState(Data):
@@ -161,7 +161,7 @@ class ToolState(Data):
         If the tool is kinematic, the current configuration of the tool.
     """
 
-    def __init__(self, tool_id='undefined_tool', initial_configuration=None):
+    def __init__(self, tool_id="undefined_tool", initial_configuration=None):
         super(ToolState, self).__init__()
         self.tool_id = tool_id
         self.frame = Frame.worldXY()  # type: Frame
@@ -172,20 +172,20 @@ class ToolState(Data):
     @property
     def data(self):
         data = {}
-        data['tool_id'] = self.tool_id
-        data['frame'] = self.frame
-        data['attached_to_robot'] = self.attached_to_robot
-        data['attached_to_robot_grasp'] = self.attached_to_robot_grasp
-        data['configuration'] = self.configuration
+        data["tool_id"] = self.tool_id
+        data["frame"] = self.frame
+        data["attached_to_robot"] = self.attached_to_robot
+        data["attached_to_robot_grasp"] = self.attached_to_robot_grasp
+        data["configuration"] = self.configuration
         return data
 
     @data.setter
     def data(self, data):
-        self.tool_id = data.get('tool_id', self.tool_id)
-        self.frame = data.get('frame', self.frame)
-        self.attached_to_robot = data.get('attached_to_robot', self.attached_to_robot)
-        self.attached_to_robot_grasp = data.get('attached_to_robot_grasp', self.attached_to_robot_grasp)
-        self.configuration = data.get('configuration', self.configuration)
+        self.tool_id = data.get("tool_id", self.tool_id)
+        self.frame = data.get("frame", self.frame)
+        self.attached_to_robot = data.get("attached_to_robot", self.attached_to_robot)
+        self.attached_to_robot_grasp = data.get("attached_to_robot_grasp", self.attached_to_robot_grasp)
+        self.configuration = data.get("configuration", self.configuration)
 
 
 class RobotState(Data):
@@ -207,11 +207,11 @@ class RobotState(Data):
     @property
     def data(self):
         data = {}
-        data['frame'] = self.frame
-        data['configuration'] = self.configuration
+        data["frame"] = self.frame
+        data["configuration"] = self.configuration
         return data
 
     @data.setter
     def data(self, data):
-        self.frame = data.get('frame', self.frame)
-        self.configuration = data.get('configuration', self.configuration)
+        self.frame = data.get("frame", self.frame)
+        self.configuration = data.get("configuration", self.configuration)

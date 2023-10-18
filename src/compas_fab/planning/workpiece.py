@@ -26,11 +26,11 @@ class Workpiece(Data):
     @property
     def data(self):
         data = {}
-        data['mesh'] = self.mesh
-        data['grasp'] = self.grasp
+        data["mesh"] = self.mesh
+        data["grasp"] = self.grasp
         return data
 
     @data.setter
     def data(self, data):
-        self.mesh = data.get('mesh', self.mesh)
-        self.grasp = data.get('grasp', self.grasp)
+        self.mesh = data.get("mesh", self.mesh)
+        self.grasp = data.get("grasp", self.grasp)

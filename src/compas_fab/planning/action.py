@@ -30,16 +30,16 @@ class Action(Data):
         data = {}
         # For class inhereited from Action, use the following line
         # data = super(Action, self).data
-        data['act_n'] = self.act_n
-        data['tag'] = self.tag
+        data["act_n"] = self.act_n
+        data["tag"] = self.tag
         return data
 
     @data.setter
     def data(self, data):
         # For class inhereited from Action, use the following line
         # super(Action, type(self)).data.fset(self, data)
-        self.act_n = data['act_n']
-        self.tag = data['tag']
+        self.act_n = data["act_n"]
+        self.tag = data["tag"]
 
     def apply_to(self, scene_state, debug=False):
         # type: (SceneState, bool) -> None
@@ -87,26 +87,27 @@ class RoboticMovement(Action):
     @property
     def data(self):
         data = super(RoboticMovement, self).data
-        data['tag'] = self.tag
-        data['robot_target'] = self.robot_target
-        data['allowed_collision_pairs'] = self.allowed_collision_pairs
-        data['fixed_configuration'] = self.fixed_configuration
-        data['intermediate_planning_waypoint'] = self.intermediate_planning_waypoint
-        data['planned_trajectory'] = self.planned_trajectory
-        data['planner_seed'] = self.planner_seed
+        data["tag"] = self.tag
+        data["robot_target"] = self.robot_target
+        data["allowed_collision_pairs"] = self.allowed_collision_pairs
+        data["fixed_configuration"] = self.fixed_configuration
+        data["intermediate_planning_waypoint"] = self.intermediate_planning_waypoint
+        data["planned_trajectory"] = self.planned_trajectory
+        data["planner_seed"] = self.planner_seed
         return data
 
     @data.setter
     def data(self, data):
         super(RoboticMovement, type(self)).data.fset(self, data)
-        self.tag = data.get('tag', self.tag)
-        self.robot_target = data.get('robot_target', self.robot_target)
-        self.allowed_collision_pairs = data.get('allowed_collision_pairs', self.allowed_collision_pairs)
-        self.fixed_configuration = data.get('fixed_configuration', self.fixed_configuration)
+        self.tag = data.get("tag", self.tag)
+        self.robot_target = data.get("robot_target", self.robot_target)
+        self.allowed_collision_pairs = data.get("allowed_collision_pairs", self.allowed_collision_pairs)
+        self.fixed_configuration = data.get("fixed_configuration", self.fixed_configuration)
         self.intermediate_planning_waypoint = data.get(
-            'intermediate_planning_waypoint', self.intermediate_planning_waypoint)
-        self.planned_trajectory = data.get('planned_trajectory', self.planned_trajectory)
-        self.planner_seed = data.get('planner_seed', self.planner_seed)
+            "intermediate_planning_waypoint", self.intermediate_planning_waypoint
+        )
+        self.planned_trajectory = data.get("planned_trajectory", self.planned_trajectory)
+        self.planner_seed = data.get("planner_seed", self.planner_seed)
 
     def apply_to(self, scene_state, debug=False):
         # type: (SceneState, bool) -> None
@@ -135,17 +136,21 @@ class RoboticMovement(Action):
             attached_tool_state = scene_state.get_tool_state(attached_tool_id)
             assert attached_tool_state.attached_to_robot, "Inconsistency: Attached tool must be attached to robot."
             # attached_tool_state.frame = robot_state.frame * attached_tool_state.attached_to_robot_grasp
-            attached_tool_state.frame = Frame.from_transformation(Transformation.from_frame(
-                robot_state.frame) * attached_tool_state.attached_to_robot_grasp)
+            attached_tool_state.frame = Frame.from_transformation(
+                Transformation.from_frame(robot_state.frame) * attached_tool_state.attached_to_robot_grasp
+            )
             if debug:
                 print("- Attached Tool %s Followed." % attached_tool_id)
         # Transform attached workpieces
         attached_workpiece_id = scene_state.get_attached_workpiece_id()
         if attached_workpiece_id is not None:
             attached_workpiece = scene_state.get_workpiece_state(attached_workpiece_id)
-            assert attached_workpiece.attached_to_tool_id == attached_tool_id, "Inconsistency: Attached workpiece must be attached to the attached tool."
-            attached_workpiece.frame = Frame.from_transformation(Transformation.from_frame(
-                attached_tool_state.frame) * attached_workpiece.attached_to_tool_grasp)
+            assert (
+                attached_workpiece.attached_to_tool_id == attached_tool_id
+            ), "Inconsistency: Attached workpiece must be attached to the attached tool."
+            attached_workpiece.frame = Frame.from_transformation(
+                Transformation.from_frame(attached_tool_state.frame) * attached_workpiece.attached_to_tool_grasp
+            )
             if debug:
                 print("- Attached Workpiece %s Followed." % attached_workpiece_id)
 
@@ -238,15 +243,15 @@ class CloseGripper(Action):
     @property
     def data(self):
         data = super(CloseGripper, self).data
-        data['attached_workpiece_id'] = self.attached_workpiece_id
-        data['attached_workpiece_grasp'] = self.attached_workpiece_grasp
+        data["attached_workpiece_id"] = self.attached_workpiece_id
+        data["attached_workpiece_grasp"] = self.attached_workpiece_grasp
         return data
 
     @data.setter
     def data(self, data):
         super(CloseGripper, type(self)).data.fset(self, data)
-        self.attached_workpiece_id = data.get('attached_workpiece_id', self.attached_workpiece_id)
-        self.attached_workpiece_grasp = data.get('attached_workpiece_grasp', self.attached_workpiece_grasp)
+        self.attached_workpiece_id = data.get("attached_workpiece_id", self.attached_workpiece_id)
+        self.attached_workpiece_grasp = data.get("attached_workpiece_grasp", self.attached_workpiece_grasp)
 
     def apply_to(self, scene_state, debug=False):
         # type: (SceneState, bool) -> None
@@ -280,8 +285,9 @@ class CloseGripper(Action):
             if debug:
                 print("- Workpiece %s attached to tool." % self.attached_workpiece_id)
             # attached_workpiece.frame = attached_tool_state.frame * attached_workpiece.attached_to_tool_grasp
-            attached_workpiece.frame = Frame.from_transformation(Transformation.from_frame(
-                attached_tool_state.frame) * attached_workpiece.attached_to_tool_grasp)
+            attached_workpiece.frame = Frame.from_transformation(
+                Transformation.from_frame(attached_tool_state.frame) * attached_workpiece.attached_to_tool_grasp
+            )
 
 
 class LoadWorkpiece(Action):
@@ -302,15 +308,15 @@ class LoadWorkpiece(Action):
     @property
     def data(self):
         data = super(LoadWorkpiece, self).data
-        data['workpiece_id'] = self.workpiece_id
-        data['frame'] = self.frame
+        data["workpiece_id"] = self.workpiece_id
+        data["frame"] = self.frame
         return data
 
     @data.setter
     def data(self, data):
         super(LoadWorkpiece, type(self)).data.fset(self, data)
-        self.workpiece_id = data.get('workpiece_id', self.workpiece_id)
-        self.frame = data.get('frame', self.frame)
+        self.workpiece_id = data.get("workpiece_id", self.workpiece_id)
+        self.frame = data.get("frame", self.frame)
 
     def apply_to(self, scene_state, debug=False):
         # type: (SceneState, bool) -> None
