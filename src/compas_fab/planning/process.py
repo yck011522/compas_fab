@@ -94,6 +94,11 @@ class AssemblyProcess(Data):
         data["tool"] = self.tool
         data["assembly_sequence"] = self.assembly_sequence
         data["actions"] = self.actions
+        data["workpiece_storage_frame"] = self.workpiece_storage_frame
+        data["workpiece_before_approach_frame"] = self.workpiece_before_approach_frame
+        data["workpiece_assembled_frame"] = self.workpiece_assembled_frame
+        data["robot_initial_frame"] = self.robot_initial_frame
+        data["robot_initial_configuration"] = self.robot_initial_configuration
         return data
 
     @data.setter
@@ -102,6 +107,22 @@ class AssemblyProcess(Data):
         self.tool = data.get("tool", self.tool)
         self.assembly_sequence = data.get("assembly_sequence", self.assembly_sequence)
         self.actions = data.get("actions", self.actions)
+        self.workpiece_storage_frame = data.get(
+            "workpiece_storage_frame", self.workpiece_storage_frame
+        )
+        self.workpiece_before_approach_frame = data.get(
+            "workpiece_before_approach_frame", self.workpiece_before_approach_frame
+        )
+        self.workpiece_assembled_frame = data.get(
+            "workpiece_assembled_frame", self.workpiece_assembled_frame
+        )
+        self.robot_initial_frame = data.get(
+            "robot_initial_frame", self.robot_initial_frame
+        )
+        self.robot_initial_configuration = data.get(
+            "robot_initial_configuration", self.robot_initial_configuration
+        )
+
 
     @property
     def workpiece_ids(self):
