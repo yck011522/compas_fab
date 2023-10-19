@@ -2,7 +2,9 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import os
 import json
+from compas.files import URDF
 
 from compas.data import Data
 from compas.robots import Geometry
@@ -10,7 +12,8 @@ from compas.robots import ToolModel
 
 from compas_fab.robots.planning_scene import AttachedCollisionMesh
 from compas_fab.robots.planning_scene import CollisionMesh
-
+from compas.robots import MeshDescriptor
+from compas.datastructures import mesh_quads_to_triangles
 
 __all__ = ["Tool"]
 
@@ -222,3 +225,90 @@ class Tool(Data):
         [Frame(Point(-0.309, -0.046, -0.266), Vector(0.276, 0.926, -0.256), Vector(0.879, -0.136, 0.456))]
         """
         return self.tool_model.from_t0cf_to_tcf(frames_t0cf)
+
+    @property
+    def urdf_package_name(self):
+        return self.name or str(self.guid)
+
+    def urdf_package_folder(self, root_dir):
+        return os.path.join(root_dir, self.urdf_package_name)
+
+    def urdf_file_folder(self, root_dir):
+        return os.path.join(self.urdf_package_folder(root_dir), "urdf")
+
+    def urdf_file_path(self, root_dir):
+        return os.path.join(self.urdf_file_folder(root_dir), self.urdf_package_name + ".urdf")
+
+    def urdf_visual_meshes_folder(self, root_dir):
+        return os.path.join(self.urdf_package_folder(root_dir), "meshes", "visual")
+
+    def urdf_collision_meshes_folder(self, root_dir):
+        return os.path.join(self.urdf_package_folder(root_dir), "meshes", "collision")
+
+    def _export_mesh(self, element, package_relative_dir, mesh_dir, mesh_name, address_dict, triangulize=True):
+        shape = element.geometry.shape
+        if isinstance(shape, MeshDescriptor):
+            mesh = shape.meshes[0]
+            if triangulize:
+                mesh_quads_to_triangles(mesh)
+            assert mesh_name not in address_dict
+            shape.filename = mesh_name  # str(mesh.guid)
+            try:
+                file_name = mesh_name + ".stl"
+                mesh.to_stl(os.path.join(mesh_dir, file_name), binary=True)
+            except:  # noqa: E722
+                file_name = mesh_name + ".obj"
+                mesh.to_obj(os.path.join(mesh_dir, file_name))
+            address_dict[mesh_name] = "package://" + package_relative_dir.replace("\\", "/") + "/" + file_name
+        return address_dict
+
+    def save_as_urdf(self, root_dir, triangulize=True):
+        # modified from: https://github.com/compas-dev/compas_fab/blob/6e68dbd7440fa68a58606bb9100495583bc79980/src/compas_fab/backends/pybullet/client.py#L235
+        tool_model = self.tool_model
+        tool_model.ensure_geometry()
+
+        def make_dir_if_not_exist(directory):
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+
+        make_dir_if_not_exist(root_dir)
+        make_dir_if_not_exist(self.urdf_visual_meshes_folder(root_dir))
+        make_dir_if_not_exist(self.urdf_collision_meshes_folder(root_dir))
+        make_dir_if_not_exist(self.urdf_file_folder(root_dir))
+
+        # * write meshes to cache
+        address_dict = {}
+        for link_id, link in enumerate(tool_model.links):
+            for v_eid, element in enumerate(link.visual):
+                package_relative_dir = self.urdf_package_name + "/meshes/visual"
+                self._export_mesh(
+                    element,
+                    package_relative_dir,
+                    self.urdf_visual_meshes_folder(root_dir),
+                    "L{}_visual_{}".format(link_id, v_eid),
+                    address_dict,
+                    triangulize,
+                )
+            for c_eid, element in enumerate(link.collision):
+                package_relative_dir = self.urdf_package_name + "/meshes/collision"
+                self._export_mesh(
+                    element,
+                    package_relative_dir,
+                    self.urdf_collision_meshes_folder(root_dir),
+                    "L{}_collision_{}".format(link_id, c_eid),
+                    address_dict,
+                    triangulize,
+                )
+
+        # * create urdf with new mesh locations
+        urdf = URDF.from_robot(tool_model)
+        meshes = list(urdf.xml.root.iter("mesh"))
+        for mesh in meshes:
+            filename = mesh.attrib["filename"]
+            assert filename != "", "filename is empty"
+            if filename in address_dict:
+                mesh.attrib["filename"] = address_dict[filename]
+                scale_factor = tool_model._scale_factor
+                mesh.attrib["scale"] = "{} {} {}".format(scale_factor, scale_factor, scale_factor)
+        # write urdf
+        urdf.to_file(self.urdf_file_path(root_dir), prettify=True)
