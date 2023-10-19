@@ -4,14 +4,21 @@ from compas_fab.robots import Tool  # noqa: F401
 
 
 try:
-    from compas_fab.planning import Action, Workpiece, SceneState, RoboticMovement  # noqa: F401
+    from compas_fab.planning import (
+        Action,
+        Workpiece,
+        SceneState,
+        RoboticMovement,
+        LinearMovement,
+        FreeMovement,
+    )  # noqa: F401
 except ImportError:
-    from .action import Action, RoboticMovement  # noqa: F401
+    from .action import Action, RoboticMovement, LinearMovement, FreeMovement  # noqa: F401
     from .workpiece import Workpiece  # noqa: F401
     from .state import SceneState  # noqa: F401
 
 try:
-    from typing import Optional  # noqa: F401
+    from typing import Optional, List, Type  # noqa: F401
 except ImportError:
     pass
 
@@ -107,22 +114,13 @@ class AssemblyProcess(Data):
         self.tool = data.get("tool", self.tool)
         self.assembly_sequence = data.get("assembly_sequence", self.assembly_sequence)
         self.actions = data.get("actions", self.actions)
-        self.workpiece_storage_frame = data.get(
-            "workpiece_storage_frame", self.workpiece_storage_frame
-        )
+        self.workpiece_storage_frame = data.get("workpiece_storage_frame", self.workpiece_storage_frame)
         self.workpiece_before_approach_frame = data.get(
             "workpiece_before_approach_frame", self.workpiece_before_approach_frame
         )
-        self.workpiece_assembled_frame = data.get(
-            "workpiece_assembled_frame", self.workpiece_assembled_frame
-        )
-        self.robot_initial_frame = data.get(
-            "robot_initial_frame", self.robot_initial_frame
-        )
-        self.robot_initial_configuration = data.get(
-            "robot_initial_configuration", self.robot_initial_configuration
-        )
-
+        self.workpiece_assembled_frame = data.get("workpiece_assembled_frame", self.workpiece_assembled_frame)
+        self.robot_initial_frame = data.get("robot_initial_frame", self.robot_initial_frame)
+        self.robot_initial_configuration = data.get("robot_initial_configuration", self.robot_initial_configuration)
 
     @property
     def workpiece_ids(self):
@@ -185,25 +183,53 @@ class AssemblyProcess(Data):
         """Returns the robotic actions in the process."""
         return [action for action in self.actions if isinstance(action, RoboticMovement)]
 
-    def get_next_robotic_action(self, action):
-        # type: (Action) -> Optional[RoboticMovement]
-        """Returns the next robotic action in the process."""
-        try:
-            return self.get_robotic_actions()[self.get_robotic_actions().index(action) + 1]
-        except IndexError:
-            return None
+    def get_next_robotic_action(self, action, type=None):
+        # type: (Action, Type) -> Optional[RoboticMovement]
+        """Returns the next robotic action in the process.
+        If type is specified, returns the next robotic action of the specified type.
 
-    def get_previous_robotic_action(self, action):
-        # type: (Action) -> Optional[RoboticMovement]
-        """Returns the previous robotic action in the process."""
-        try:
-            return self.get_robotic_actions()[self.get_robotic_actions().index(action) - 1]
-        except IndexError:
-            return None
+        Parameters
+        ----------
+        action : :class:`compas_fab.planning.Action`
+            The action to query.
+        type : type, optional
+            The type of the next robotic action to query.
+            :class:`compas_fab.planning.FreeMovement` or `compas_fab.planning.LinearMovement`.
+        """
+        robotic_actions = self.get_robotic_actions()
+        action_index = robotic_actions.index(action)
+        while action_index < len(robotic_actions) - 2:
+            action_index += 1
+            next_action = robotic_actions[action_index]
+            if type is None or isinstance(next_action, type):
+                return next_action
+        return None
+
+    def get_previous_robotic_action(self, action, type=None):
+        # type: (Action, Type) -> Optional[RoboticMovement]
+        """Returns the previous robotic action in the process.
+        If type is specified, returns the next robotic action of the specified type.
+
+        Parameters
+        ----------
+        action : :class:`compas_fab.planning.Action`
+            The action to query.
+        type : type, optional
+            The type of the next robotic action to query.
+            :class:`compas_fab.planning.FreeMovement` or `compas_fab.planning.LinearMovement`.
+        """
+        robotic_actions = self.get_robotic_actions()
+        action_index = robotic_actions.index(action)
+        while action_index > 0:
+            action_index -= 1
+            prev_action = robotic_actions[action_index]
+            if type is None or isinstance(prev_action, type):
+                return prev_action
+        return None
 
     def get_action_starting_configuration(self, action):
         # type: (RoboticMovement) -> Optional[Configuration]
-        """Returns True if the action has a starting configuration.
+        """Returns the starting configuration of an action.
         Returns None if the action does not have a starting configuration.
 
         Cases where the action has a starting configuration are:
@@ -252,3 +278,108 @@ class AssemblyProcess(Data):
             return next_action.planned_trajectory.points[0]
         else:
             return None
+
+    def get_movement_groups(self):
+        # type: () -> List[List[RoboticMovement]]
+        """Returns the movement groups of the process.
+        Each group contains a list of ordered robotic movements of the same type.
+        """
+        movement_groups = []
+        robotic_actions = self.get_robotic_actions()
+
+        # Bootstrap the first group
+        last_movement_type = type(robotic_actions[0])
+        movement_group = [robotic_actions[0]]
+
+        for action in robotic_actions[1:]:
+            if isinstance(action, last_movement_type):
+                movement_group.append(action)
+            else:
+                # New movement group
+                movement_groups.append(movement_group)
+                movement_group = [action]
+            last_movement_type = type(action)
+        # Add the last movement group
+        movement_groups.append(movement_group)
+        return movement_groups
+
+    def get_movement_group(self, action):
+        # type: (RoboticMovement, type) -> List[RoboticMovement]
+        """Returns the entire movement group of an RoboticMovement action
+        returns a list of ordered RoboticMovement that the given movement resides"""
+        assert isinstance(action, RoboticMovement)
+        for movement_group in self.get_movement_groups():
+            if action in movement_group:
+                return movement_group
+
+    def get_linear_movement_groups(self):
+        # type: () -> List[List[LinearMovement]]
+        """Returns the linear movement groups of the process.
+        Each group contains a list of ordered linear movements.
+        """
+        movement_groups = []
+        for movement_group in self.get_movement_groups():
+            if isinstance(movement_group[0], LinearMovement):
+                movement_groups.append(movement_group)
+        return movement_groups
+
+    def get_free_movement_groups(self):
+        # type: () -> List[List[FreeMovement]]
+        """Returns the free movement groups of the process.
+        Each group contains a list of ordered free movements.
+        """
+        movement_groups = []
+        for movement_group in self.get_movement_groups():
+            if isinstance(movement_group[0], FreeMovement):
+                movement_groups.append(movement_group)
+        return movement_groups
+
+    def get_linear_movement_group(self, action):
+        # type: (LinearMovement) -> List[LinearMovement]
+        """Returns the linear movement group of an LinearMovement action.
+
+        Parameters
+        ----------
+        action : :class:`compas_fab.planning.LinearMovement`
+            The linear movement action to query.
+        """
+        assert isinstance(action, LinearMovement)
+        return self.get_movement_group(action)
+
+    def get_free_movement_group(self, action):
+        # type: (FreeMovement) -> List[FreeMovement]
+        """Returns the free movement group of an FreeMovement action.
+
+        Parameters
+        ----------
+        action : :class:`compas_fab.planning.FreeMovement`
+            The free movement action to query.
+        """
+        assert isinstance(action, FreeMovement)
+        return self.get_movement_group(action)
+
+    def get_prev_movement_group(self, action):
+        # type: (RoboticMovement) -> List[RoboticMovement]
+        action_type = type(action)
+        if action_type == LinearMovement:
+            prev_group_type = FreeMovement
+        else:
+            prev_group_type = LinearMovement
+        prev_movement = self.get_previous_robotic_action(action, prev_group_type)
+        if prev_movement is not None:
+            return self.get_movement_group(prev_movement)
+        else:
+            return []
+
+    def get_next_movement_group(self, action):
+        # type: (RoboticMovement) -> List[RoboticMovement]
+        action_type = type(action)
+        if action_type == LinearMovement:
+            next_group_type = FreeMovement
+        else:
+            next_group_type = LinearMovement
+        next_movement = self.get_next_robotic_action(action, next_group_type)
+        if next_movement is not None:
+            return self.get_movement_group(next_movement)
+        else:
+            return []
