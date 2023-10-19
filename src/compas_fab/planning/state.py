@@ -82,7 +82,7 @@ class SceneState(Data):
         return self.workpiece_states[workpiece_id]
 
     def get_attached_tool_id(self):
-        # type: () -> Optional(str)
+        # type: () -> Optional[str]
         """Returns the id of the tool that is currently attached to the robot.
         This function assumes there is only one possible tool attached to the robot.
         If no tool is attached, `None` is returned.
@@ -93,7 +93,7 @@ class SceneState(Data):
         return None
 
     def get_attached_workpiece_id(self):
-        # type: () -> Optional(str)
+        # type: () -> Optional[str]
         """Returns the id of the workpiece that is currently attached to the robot.
         This function assumes there is only one possible workpiece attached to the robot.
         If no workpiece is attached, `None` is returned.
@@ -124,8 +124,8 @@ class WorkpieceState(Data):
         super(WorkpieceState, self).__init__()
         self.workpiece_id = workpiece_id
         self.frame = Frame.worldXY()  # type: Frame
-        self.attached_to_tool_id = None  # type: Optional(str)
-        self.attached_to_tool_grasp = None  # type: Optional(Transformation)
+        self.attached_to_tool_id = None  # type: Optional[str]
+        self.attached_to_tool_grasp = None  # type: Optional[Transformation]
 
     @property
     def data(self):
@@ -166,8 +166,8 @@ class ToolState(Data):
         self.tool_id = tool_id
         self.frame = Frame.worldXY()  # type: Frame
         self.attached_to_robot = False  # type: bool
-        self.attached_to_robot_grasp = None  # type: Optional(Transformation)
-        self.configuration = initial_configuration  # type: Optional(Configuration)
+        self.attached_to_robot_grasp = None  # type: Optional[Transformation]
+        self.configuration = initial_configuration  # type: Optional[Configuration]
 
     @property
     def data(self):
@@ -202,7 +202,7 @@ class RobotState(Data):
     def __init__(self, initial_configuration=None, initial_frame=None):
         super(RobotState, self).__init__()
         self.frame = initial_frame  # type: Frame
-        self.configuration = initial_configuration  # type: Optional(Configuration)
+        self.configuration = initial_configuration  # type: Optional[Configuration]
 
     @property
     def data(self):

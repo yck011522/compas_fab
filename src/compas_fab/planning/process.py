@@ -1,13 +1,19 @@
 from compas.data import Data
+from compas.robots import Configuration, RobotModel  # noqa: F401
 from compas_fab.robots import Tool  # noqa: F401
 
 
 try:
-    from compas_fab.planning import Action, Workpiece, SceneState  # noqa: F401
+    from compas_fab.planning import Action, Workpiece, SceneState, RoboticMovement  # noqa: F401
 except ImportError:
-    from .action import Action  # noqa: F401
+    from .action import Action, RoboticMovement  # noqa: F401
     from .workpiece import Workpiece  # noqa: F401
     from .state import SceneState  # noqa: F401
+
+try:
+    from typing import Optional  # noqa: F401
+except ImportError:
+    pass
 
 from compas.geometry import Frame, Transformation
 
@@ -108,6 +114,7 @@ class AssemblyProcess(Data):
         return self.tool.name
 
     def get_initial_state(self):
+        # type: () -> SceneState
         """Returns the initial state of the process.
 
         Returns
@@ -135,6 +142,7 @@ class AssemblyProcess(Data):
         return scene_state
 
     def get_intermediate_state(self, state_index, debug=False):
+        # type: (int, bool) -> SceneState
         """Parses the actions in the process and returns an intermediate state of the process.
 
         Parameters
@@ -150,3 +158,76 @@ class AssemblyProcess(Data):
         for action in self.actions[:state_index]:
             action.apply_to(scene_state, debug=debug)
         return scene_state
+
+    def get_robotic_actions(self):
+        # type: () -> list[RoboticMovement]
+        """Returns the robotic actions in the process."""
+        return [action for action in self.actions if isinstance(action, RoboticMovement)]
+
+    def get_next_robotic_action(self, action):
+        # type: (Action) -> Optional[RoboticMovement]
+        """Returns the next robotic action in the process."""
+        try:
+            return self.get_robotic_actions()[self.get_robotic_actions().index(action) + 1]
+        except IndexError:
+            return None
+
+    def get_previous_robotic_action(self, action):
+        # type: (Action) -> Optional[RoboticMovement]
+        """Returns the previous robotic action in the process."""
+        try:
+            return self.get_robotic_actions()[self.get_robotic_actions().index(action) - 1]
+        except IndexError:
+            return None
+
+    def get_action_starting_configuration(self, action):
+        # type: (RoboticMovement) -> Optional[Configuration]
+        """Returns True if the action has a starting configuration.
+        Returns None if the action does not have a starting configuration.
+
+        Cases where the action has a starting configuration are:
+        - this action is the first robotic movement in the process
+            (return the initial robotic configuration)
+        - the previous robotic movement has a planned tracjectory
+            (return the last trajectory point of the planned trajectory)
+        - the previous robotic movement has a fixed configuration
+            (return the fixed configuration)
+
+        Parameters
+        ----------
+        action : :class:`compas_fab.planning.RoboticMovement`
+            The robotic movement action to query.
+        """
+        previous_action = self.get_previous_robotic_action(action)
+        if previous_action is None:
+            return self.robot_initial_configuration
+        elif previous_action.planned_trajectory is not None:
+            return previous_action.planned_trajectory.points[-1].values
+        elif previous_action.fixed_configuration is not None:
+            return previous_action.fixed_configuration
+        else:
+            return None
+
+    def get_action_ending_configuration(self, action):
+        # type: (RoboticMovement) -> Optional[Configuration]
+        """Returns the ending configuration of an action.
+        Returns None if the action does not have an ending configuration.
+
+        Cases where the action has an ending configuration are:
+        - this robotic movement has a fixed configuration
+            (return the fixed configuration)
+        - the next robotic movement has a planned trajectory
+            (return the first trajectory point of the planned trajectory)
+
+        Parameters
+        ----------
+        action : :class:`compas_fab.planning.RoboticMovement`
+            The robotic movement action to query.
+        """
+        next_action = self.get_next_robotic_action(action)
+        if action.fixed_configuration is not None:
+            return action.fixed_configuration
+        elif next_action is not None and next_action.planned_trajectory is not None:
+            return next_action.planned_trajectory.points[0]
+        else:
+            return None

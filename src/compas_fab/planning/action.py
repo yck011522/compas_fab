@@ -7,6 +7,11 @@ try:
 except ImportError:
     from .state import SceneState  # noqa: F401
 
+try:
+    from typing import Optional  # noqa: F401
+except ImportError:
+    pass
+
 __all__ = [
     "Action",
     "RoboticMovement",
@@ -51,7 +56,8 @@ class Action(Data):
 
 class RoboticMovement(Action):
     """Base class for all robotic movements.
-    Robotic movements are actions that changes the configuration of the robot.
+    - Robotic movements are actions that changes the configuration of the robot.
+    - Robotic movements require motion planning and are planned by a motion planner.
 
     Attributes
     ----------
@@ -77,12 +83,12 @@ class RoboticMovement(Action):
         # Before Planning
         self.robot_target = None  # type: Frame
         self.allowed_collision_pairs = []  # type: list(tuple(str,str))
-        self.fixed_configuration = None  # type: Configuration
+        self.fixed_configuration = None  # type: Optional[Configuration]
         self.intermediate_planning_waypoint = []  # type: list(Configuration)
 
         # After Planning
-        self.planned_trajectory = None  # type: JointTrajectory
-        self.planner_seed = None  # type: int
+        self.planned_trajectory = None  # type: Optional[JointTrajectory]
+        self.planner_seed = None  # type: Optional[int]
 
     @property
     def data(self):
