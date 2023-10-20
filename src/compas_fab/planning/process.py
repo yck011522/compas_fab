@@ -249,7 +249,7 @@ class AssemblyProcess(Data):
         if previous_action is None:
             return self.robot_initial_configuration
         elif previous_action.planned_trajectory is not None:
-            return previous_action.planned_trajectory.points[-1].values
+            return previous_action.planned_trajectory.points[-1]
         elif previous_action.fixed_configuration is not None:
             return previous_action.fixed_configuration
         else:
