@@ -1,5 +1,6 @@
 from compas.data import Data
 from compas.robots import Configuration, RobotModel  # noqa: F401
+from compas.datastructures import Mesh  # noqa: F401
 from compas_fab.robots import Tool  # noqa: F401
 
 
@@ -79,6 +80,7 @@ class AssemblyProcess(Data):
         self.workpieces = {}  # type: dict[str, Workpiece]
         self.tool = None  # type: Tool
         self._robot_model = None  # type: RobotModel
+        self.static_collision_meshes = {}  # type: dict[str, Mesh]
         self.assembly_sequence = []  # type: list[str]
         self.actions = []  # type: list[Action]
 
