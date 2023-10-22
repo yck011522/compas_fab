@@ -79,7 +79,6 @@ class AssemblyProcess(Data):
         super(AssemblyProcess, self).__init__()
         self.workpieces = {}  # type: dict[str, Workpiece]
         self.tool = None  # type: Tool
-        self._robot_model = None  # type: RobotModel
         self.static_collision_meshes = {}  # type: dict[str, Mesh]
         self.assembly_sequence = []  # type: list[str]
         self.actions = []  # type: list[Action]
@@ -101,7 +100,7 @@ class AssemblyProcess(Data):
         data = {}
         data["workpieces"] = self.workpieces
         data["tool"] = self.tool
-        data["assembly_sequence"] = self.assembly_sequence
+        data["static_collision_meshes"] = self.static_collision_meshes
         data["actions"] = self.actions
         data["workpiece_storage_frame"] = self.workpiece_storage_frame
         data["workpiece_before_approach_frame"] = self.workpiece_before_approach_frame
@@ -114,6 +113,7 @@ class AssemblyProcess(Data):
     def data(self, data):
         self.workpieces = data.get("workpieces", self.workpieces)
         self.tool = data.get("tool", self.tool)
+        self.static_collision_meshes = data.get("static_collision_meshes", self.static_collision_meshes)
         self.assembly_sequence = data.get("assembly_sequence", self.assembly_sequence)
         self.actions = data.get("actions", self.actions)
         self.workpiece_storage_frame = data.get("workpiece_storage_frame", self.workpiece_storage_frame)
